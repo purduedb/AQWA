@@ -89,9 +89,9 @@ public class RQDriver{
 	// args[5] = statistics file name (experiment's results)
 	public static void main(String[] args) throws IOException {
 		String experimentType = args[0];
-		if (experimentType.equalsIgnoreCase("static") && 
-				experimentType.equalsIgnoreCase("dynamic") &&
-				experimentType.equalsIgnoreCase("grid")) {
+		if (!experimentType.equalsIgnoreCase("static") && 
+			!experimentType.equalsIgnoreCase("dynamic") &&
+			!experimentType.equalsIgnoreCase("grid")) {
 			System.out.println("Please enter a valid experiment type as an argument. You may enter any of " +
 					"static, dynamic, grid as the first argument");
 			return;
@@ -99,6 +99,9 @@ public class RQDriver{
 		int k = Integer.parseInt(args[1]);
 		int numQueries = Integer.parseInt(args[2]);
 		String inputDir = args[3];
+		if (inputDir.charAt(inputDir.length() - 1) != '/') {
+			inputDir += "/";
+		}
 		String outputDir = args[4];
 		String statsFileName = args[5];
 
@@ -187,7 +190,7 @@ public class RQDriver{
 		System.out.println("Number of overlapping partitions: " + overlappingPartitions.size());
 
 		for (Partition overlapping : overlappingPartitions) {
-			Path overlappingPartitionPath = new Path(inputDir + "/" + overlapping.getBottom() + "," + overlapping.getTop() + "," + overlapping.getLeft() + "," + overlapping.getRight());
+			Path overlappingPartitionPath = new Path(inputDir + overlapping.getBottom() + "," + overlapping.getTop() + "," + overlapping.getLeft() + "," + overlapping.getRight());
 			if (fs.exists(overlappingPartitionPath)) {
 				FileInputFormat.addInputPath(conf, overlappingPartitionPath);
 			} else {
@@ -316,7 +319,6 @@ public class RQDriver{
 			fs.delete(mergeChild1Path);
 			System.out.println("Done Meging into " + mergeParentPath);
 
-
 			// Splitting
 			Path splitParentPath = new Path(inputDir + splitMergeInfo.splitParent.getBottom() + "," + splitMergeInfo.splitParent.getTop() + "," + splitMergeInfo.splitParent.getLeft() + "," + splitMergeInfo.splitParent.getRight());
 			Path splitChild0Path = new Path(inputDir + splitMergeInfo.splitChild0.getBottom() + "," + splitMergeInfo.splitChild0.getTop() + "," + splitMergeInfo.splitChild0.getLeft() + "," + splitMergeInfo.splitChild0.getRight());
@@ -328,11 +330,6 @@ public class RQDriver{
 			long right0 = Constants.minLong + splitMergeInfo.splitChild0.getRight() * (Constants.maxLong - Constants.minLong) / 1000;
 			long bottom0 = Constants.minLat + splitMergeInfo.splitChild0.getBottom() * (Constants.maxLat - Constants.minLat) / 1000;
 			long top0 = Constants.minLat + splitMergeInfo.splitChild0.getTop() * (Constants.maxLat - Constants.minLat) / 1000;
-
-			//			long left1 = minLong + splitMergeInfo.splitChild1.getLeft() * (maxLong - minLong) / 1000;			
-			//			long right1 = minLong + splitMergeInfo.splitChild1.getRight() * (maxLong - minLong) / 1000;
-			//			long bottom1 = minLat + splitMergeInfo.splitChild1.getBottom() * (maxLat - minLat) / 1000;
-			//			long top1 = minLat + splitMergeInfo.splitChild1.getTop() * (maxLat - minLat) / 1000;
 
 			BufferedWriter bw0 = new BufferedWriter(new OutputStreamWriter(fs.create(splitChild0Path)));
 			BufferedWriter bw1 = new BufferedWriter(new OutputStreamWriter(fs.create(splitChild1Path)));
@@ -346,8 +343,7 @@ public class RQDriver{
 
 				if (latitude >= bottom0 && latitude < top0 && longitude >= left0 && longitude <= right0) {
 					bw0.write(line + "\r\n");
-				}
-				else {
+				} else {
 					bw1.write(line + "\r\n");
 				}
 

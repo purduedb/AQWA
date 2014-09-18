@@ -155,7 +155,7 @@ public class PartitioningDriver {
 		PartitionsInfo.assertPartitioning(outputDir);
 	}
 
-	private static ArrayList<Partition> getGridPartitions(int k) {
+	public static ArrayList<Partition> getGridPartitions(int k) {
 		ArrayList<Partition> partitions = new ArrayList<Partition>();
 
 		int numRows = (int)Math.sqrt(k);
