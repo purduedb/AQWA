@@ -95,9 +95,11 @@ public class PartitionsInfo {
 		double total = 0;
 		try {
 			Configuration conf = new Configuration();
-			FileSystem fs = FileSystem.get(conf);
+//			FileSystem fs = FileSystem.get(conf);
 
 			Path path=new Path(dataPath);
+			FileSystem fs = path.getFileSystem(conf);
+			
 			FileStatus[] files = fs.listStatus(path);
 
 			for (FileStatus f : files) {

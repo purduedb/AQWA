@@ -237,17 +237,19 @@ public class Grid {
 		return sum;
 	}
 
-	private String dataPath = "counts/";
+	private String _dataPath = "counts/";
 
-	public void readFromFiles() {
+	public void readFromFiles(String dataPath) {
 		System.out.println("Reading counts from files");
 		double total = 0;
 		try {
 			Configuration conf = new Configuration();
-			FileSystem fs = FileSystem.get(conf);
-
+//			FileSystem fs = FileSystem.get(conf);
+			if (dataPath == null) dataPath = _dataPath;
 			Path path=new Path(dataPath);
 			System.out.println("Counts is at: "+dataPath);
+			FileSystem fs = path.getFileSystem(conf);
+			
 			FileStatus[] files = fs.listStatus(path);
 
 			for (FileStatus f : files) {

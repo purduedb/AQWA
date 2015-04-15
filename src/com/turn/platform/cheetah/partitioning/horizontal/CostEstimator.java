@@ -37,7 +37,20 @@ public class CostEstimator {
 
 		if (users == null) {
 			grid = new Grid(gridWidth + 1, gridHeight + 1);
-			grid.readFromFiles();
+			grid.readFromFiles(null);
+		}
+		if (qLoad != null) {
+			for (Partition p : qLoad)
+				grid.insertRegion(p.getBottom(), p.getTop(), p.getLeft(), p.getRight());
+			grid.preAggregateRegions();
+		}
+	}
+	
+	public CostEstimator(String countPath, ArrayList<Partition> qLoad, ArrayList<Partition> users, int gridWidth, int gridHeight) {
+
+		if (users == null) {
+			grid = new Grid(gridWidth + 1, gridHeight + 1);
+			grid.readFromFiles(countPath);
 		}
 		if (qLoad != null) {
 			for (Partition p : qLoad)

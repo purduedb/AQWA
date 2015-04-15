@@ -302,8 +302,9 @@ public class RQDriver{
 			List<Partition> overlappingPartitions, BufferedWriter out)  throws IOException {
 		Configuration mycon=new Configuration();
 		JobConf conf = new JobConf(mycon, RQDriver.class);
-		FileSystem fs = FileSystem.get(conf);                
-		fs.delete(new Path(outputDir), true);
+		Path op = new Path(outputDir);
+		FileSystem fs = op.getFileSystem(conf);                
+		fs.delete(op, true);
 		//conf.setNumReduceTasks(0);
 		conf.set("mapred.min.split.size", Long.toString(fs.getDefaultBlockSize()));				// More Robust
 		conf.set("mapred.sort.avoidance", "true");
@@ -423,7 +424,8 @@ public class RQDriver{
 		JobConf conf = new JobConf(mycon, RQDriver.class);
 		FileSystem fs = null;
 		try {
-			fs = FileSystem.get(conf);
+			Path ip = new Path(inputDir);
+			fs = ip.getFileSystem(conf);
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

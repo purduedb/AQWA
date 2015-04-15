@@ -112,8 +112,9 @@ public class PartitioningDriver {
 		
 		JobConf conf = new JobConf(mycon, PartitioningDriver.class);
 		try {
-			FileSystem fs = FileSystem.get(conf);               
-			fs.delete(new Path(outputDir), true);
+			Path op = new Path(outputDir);
+			FileSystem fs = op.getFileSystem(conf);               
+			fs.delete(op, true);
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
