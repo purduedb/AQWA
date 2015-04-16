@@ -302,6 +302,7 @@ public class RQDriver{
 			List<Partition> overlappingPartitions, BufferedWriter out)  throws IOException {
 		Configuration mycon=new Configuration();
 		JobConf conf = new JobConf(mycon, RQDriver.class);
+		conf.set("fs.defaultFS", "tachyon://172.31.0.168:19998");
 		Path op = new Path(outputDir);
 		FileSystem fs = op.getFileSystem(conf);                
 		fs.delete(op, true);
