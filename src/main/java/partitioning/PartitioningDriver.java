@@ -111,9 +111,12 @@ public class PartitioningDriver {
 		Configuration mycon=new Configuration();
 		
 		JobConf conf = new JobConf(mycon, PartitioningDriver.class);
-		conf.set("fs.defaultFS", "tachyon://172.31.0.168:19998");
+		//conf.set("fs.defaultFS", "tachyon://172.31.0.168:19998");
 		conf.set("tachyon.user.file.writetype.default", "ASYNC_THROUGH");
 		conf.set("tachyon.user.default.block.size.byte","134217728");
+		conf.set("mapreduce.cluster.local.dir","tachyon://172.31.0.168:19998/mrc_local_dir");
+		//conf.set("fs.AbstractFileSystem.tachyon.impl","tachyon.hadoop.AbstractFileSystemTFS");
+		
 		try {
 			Path op = new Path(outputDir);
 			FileSystem fs = op.getFileSystem(conf);               
