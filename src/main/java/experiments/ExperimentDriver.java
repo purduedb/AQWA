@@ -11,6 +11,7 @@ public class ExperimentDriver {
 		ProgramDriver pgd = new ProgramDriver();
 		try {
 			pgd.addClass("initialIndex",PartitioningDriver.class, "consturct intial paritioning");
+			pgd.addClass("srqueries",PartitioningDriver.class, "run serial query workload against specified partitioing");
 			ec = pgd.run(argv);
 		}
 		catch (Throwable e) {
