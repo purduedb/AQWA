@@ -63,6 +63,31 @@ public class PartitionsInfo {
 
 		return columnID;
 	}
+	
+	public Partition getPartitionID(String value, CoordinateParser cp) {
+          String [] tokens=cp.getCoordinates(value);
+
+          int rowID = getRowID(tokens[0]);
+          int columnID = getColumnID(tokens[1]);
+
+          double[] coords = new double[2];
+          coords[0] = columnID; coords[1] = rowID;
+          double[] dimensions = new double[2];
+          dimensions[0] = 0; dimensions[1] = 0;
+          List<Partition> partitions = partitionsRTree.searchExclusive(coords, dimensions);
+
+          if (partitions.size() > 1) {
+                  System.out.println(partitions.size());
+                  System.out.println(partitions.get(0).getBottom() + "," + partitions.get(0).getTop() + "," 
+                                  + partitions.get(0).getLeft() + "," + partitions.get(0).getRight());
+                  System.out.println(partitions.get(1).getBottom() + "," + partitions.get(1).getTop() + "," 
+                                  + partitions.get(1).getLeft() + "," + partitions.get(1).getRight());
+                  System.out.println(rowID + "," + columnID);
+                  System.out.println(value);
+          }
+
+          return partitions.get(0);
+  }
 
 	public Partition getPartitionID(String value) {
 		String [] tokens=value.toString().split(",");

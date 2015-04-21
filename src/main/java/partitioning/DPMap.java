@@ -1,6 +1,8 @@
 package partitioning;
 
+import helpers.OSMGPSParser;
 import helpers.PartitionsInfo;
+import helpers.TweetDSParser;
 
 import java.io.IOException;
 
@@ -14,22 +16,27 @@ import org.apache.hadoop.mapred.Reporter;
 
 import com.turn.platform.cheetah.partitioning.horizontal.Partition;
 
+public class DPMap extends MapReduceBase implements
+    Mapper<LongWritable, Text, Text, Text> {
 
+  PartitionsInfo partitionsInfo;
 
-public class DPMap extends MapReduceBase implements Mapper<LongWritable, Text, Text, Text> {
+  public void configure(JobConf job) {
+    partitionsInfo = new PartitionsInfo(job);
+  }
 
-	PartitionsInfo partitionsInfo;
-	public void configure(JobConf job) {
-		partitionsInfo = new PartitionsInfo(job);
-	}
+  public void map(LongWritable key, Text value,
+      OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
+    Partition partition = partitionsInfo.getPartitionID(value.toString(),
+        new OSMGPSParser());
+//    Partition partition = partitionsInfo.getPartitionID(value.toString(),
+//        new TweetDSParser());
 
-	public void map(LongWritable key, Text value,OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
-		Partition partition = partitionsInfo.getPartitionID(value.toString());
-
-		Text word = new Text();
-		word.set(partition.getBottom() + "," +partition.getTop() + "," + partition.getLeft() + "," + partition.getRight());
-		//System.out.println(word);
-		output.collect(word, value);
-	}
+    Text word = new Text();
+    word.set(partition.getBottom() + "," + partition.getTop() + ","
+        + partition.getLeft() + "," + partition.getRight());
+    // System.out.println(word);
+    output.collect(word, value);
+  }
 
 }
