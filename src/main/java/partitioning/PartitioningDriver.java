@@ -1,4 +1,5 @@
 package partitioning;
+
 import helpers.Constants;
 import helpers.PartitionsInfo;
 import index.RTree;
@@ -25,6 +26,7 @@ import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.lib.MultipleTextOutputFormat;
+import org.apache.hadoop.util.GenericOptionsParser;
 
 import partitioning.*;
 
@@ -38,167 +40,173 @@ import com.turn.platform.cheetah.partitioning.horizontal.Solution;
 
 public class PartitioningDriver {
 
-	private static int k = 100;
+  private static int k = 100;
 
-	private static String partitions;
+  private static String partitions;
 
-	// args[0] is the input dir, e.g., osm/all
-	// args[1] is a flag that if contains "grid", we will create a grid
-	// args[2] is k
-	// arg[3] is the 
-	public static void main(String[] args) {
-		
-		if (args.length < 4) {
-			System.err.println("Invalid parameters.");
-		}
-		
-		int i = 0;
-		for(String s : args) {
-			System.out.println("param " + String.valueOf(i) + ":" + s);			
-			i++;
-		}
-		String inputDir = args[0];
-		String flag = args[1];
-		k = Integer.parseInt(args[2]);
-		String indexFolder = args[3];
-		
-		System.out.println("inputDir: " + inputDir);
-		System.out.println("flag: " + flag);
-		System.out.println("k: " + String.valueOf(k));
-		System.out.println("indexFolder: " + indexFolder);
-		
-		if (flag.toLowerCase().contains("grid")) {
-			System.out.println("");
-			// This is the spatial hadoop baseline
-			//gridPartitioning(args[0], "gridPartitions");
-			gridPartitioning(inputDir, indexFolder);	
-		}
-		else {
-			// These are the initial partiotins for the dynamic partitioning afterwards.
-			// You have to redo this partitioning every time you repeat the experiment, e.g., for different k.
-			// This can also be used as the static k-d tree which is one of the baseline
-			//dynamicPartitioning(args[0], "dynamicPartitions");
-			dynamicPartitioning(inputDir, indexFolder); 	
-		}
-	}
+  // args[0] is the input dir, e.g., osm/all
+  // args[1] is a flag that if contains "grid", we will create a grid
+  // args[2] is k
+  // arg[3] is the
+  public static void main(String[] iargs) throws IOException {
+    Configuration conf = new Configuration();
+    String[] args = new GenericOptionsParser(conf, iargs).getRemainingArgs();
 
-	private static void gridPartitioning(String inputDir, String outputDir) {
-		Solution gridSol = new Solution();
-		for (Partition p : getGridPartitions(k))
-			gridSol.addPartition(p);		
+    if (args.length < 4) {
+      System.err.println("Invalid parameters.");
+    }
 
-		partitions = gridSol.toString();
-		System.out.println(partitions);
+    int i = 0;
+    for (String s : args) {
+      System.out.println("param " + String.valueOf(i) + ":" + s);
+      i++;
+    }
+    String inputDir = args[0];
+    String flag = args[1];
+    k = Integer.parseInt(args[2]);
+    String indexFolder = args[3];
 
-		exec(inputDir, outputDir);
-	}
+    System.out.println("inputDir: " + inputDir);
+    System.out.println("flag: " + flag);
+    System.out.println("k: " + String.valueOf(k));
+    System.out.println("indexFolder: " + indexFolder);
 
-	// initial partitions.
-	private static void dynamicPartitioning(String inputDir, String outputDir) {
-		CostEstimator costEstimator = new CostEstimator(null, null, Constants.gridWidth, Constants.gridHeight);
-		Solution staticSolution = new Solution();
-		DynamicPartitioning dynamic = new DynamicPartitioning(costEstimator, k, 1000);
-		for (Partition p : dynamic.initialPartitions())
-			staticSolution.addPartition(p);		
+    if (flag.toLowerCase().contains("grid")) {
+      System.out.println("");
+      // This is the spatial hadoop baseline
+      // gridPartitioning(args[0], "gridPartitions");
+      gridPartitioning(inputDir, indexFolder);
+    } else {
+      // These are the initial partiotins for the dynamic partitioning
+      // afterwards.
+      // You have to redo this partitioning every time you repeat the
+      // experiment, e.g., for different k.
+      // This can also be used as the static k-d tree which is one of the
+      // baseline
+      // dynamicPartitioning(args[0], "dynamicPartitions");
+      dynamicPartitioning(inputDir, indexFolder);
+    }
+  }
 
-		partitions = staticSolution.toString();
-		System.out.println(partitions);
+  private static void gridPartitioning(String inputDir, String outputDir) {
+    Solution gridSol = new Solution();
+    for (Partition p : getGridPartitions(k))
+      gridSol.addPartition(p);
 
-		exec(inputDir, outputDir);
-	}
+    partitions = gridSol.toString();
+    System.out.println(partitions);
 
-	private static void exec(String inputDir, String outputDir) {
-		Configuration mycon=new Configuration();
-		
-		JobConf conf = new JobConf(mycon, PartitioningDriver.class);
-		//conf.set("fs.defaultFS", "tachyon://172.31.0.168:19998");
-		conf.set("tachyon.user.file.writetype.default", "ASYNC_THROUGH");
-		conf.set("tachyon.user.default.block.size.byte","134217728");
-		conf.set("mapreduce.cluster.local.dir","tachyon://172.31.0.168:19998/mrc_local_dir");
-		//conf.set("fs.AbstractFileSystem.tachyon.impl","tachyon.hadoop.AbstractFileSystemTFS");
-		
-		try {
-			Path op = new Path(outputDir);
-			FileSystem fs = op.getFileSystem(conf);               
-			fs.delete(op, true);
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+    exec(inputDir, outputDir);
+  }
 
+  // initial partitions.
+  private static void dynamicPartitioning(String inputDir, String outputDir) {
+    CostEstimator costEstimator = new CostEstimator(null, null,
+        Constants.gridWidth, Constants.gridHeight);
+    Solution staticSolution = new Solution();
+    DynamicPartitioning dynamic = new DynamicPartitioning(costEstimator, k,
+        1000);
+    for (Partition p : dynamic.initialPartitions())
+      staticSolution.addPartition(p);
 
-		conf.setMapOutputKeyClass(Text.class);
-		conf.setMapOutputValueClass(Text.class);
+    partitions = staticSolution.toString();
+    System.out.println(partitions);
 
-		conf.setOutputValueClass(Text.class);
-		conf.setOutputKeyClass(Text.class);
+    exec(inputDir, outputDir);
+  }
 
-		conf.setMapperClass(DPMap.class);
-		conf.setReducerClass(DPReduce.class);
+  private static void exec(String inputDir, String outputDir) {
+    Configuration mycon = new Configuration();
 
-		conf.setNumMapTasks(32);
-		conf.setNumReduceTasks(32);
+    JobConf conf = new JobConf(mycon, PartitioningDriver.class);
+    // conf.set("fs.defaultFS", "tachyon://172.31.0.168:19998");
+    conf.set("tachyon.user.file.writetype.default", "ASYNC_THROUGH");
+    conf.set("tachyon.user.default.block.size.byte", "134217728");
+    conf.set("mapreduce.cluster.local.dir",
+        "tachyon://172.31.0.168:19998/mrc_local_dir");
+    // conf.set("fs.AbstractFileSystem.tachyon.impl","tachyon.hadoop.AbstractFileSystemTFS");
 
-		conf.setInputFormat(TextInputFormat.class);
-		//conf.setOutputFormat(TextOutputFormat.class);
-		conf.setOutputFormat(DPMultipleOutput.class);
+    try {
+      Path op = new Path(outputDir);
+      FileSystem fs = op.getFileSystem(conf);
+      fs.delete(op, true);
+    } catch (IOException e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
 
-		conf.set("numRows", Integer.toString(Constants.gridHeight));
-		conf.set("numColumns", Integer.toString(Constants.gridWidth));
-		conf.set("minLat", Integer.toString(Constants.minLat));
-		conf.set("minLong", Integer.toString(Constants.minLong));
-		conf.set("maxLat", Integer.toString(Constants.maxLat));
-		conf.set("maxLong", Integer.toString(Constants.maxLong));
+    conf.setMapOutputKeyClass(Text.class);
+    conf.setMapOutputValueClass(Text.class);
 
-		conf.set("partitions", partitions);
+    conf.setOutputValueClass(Text.class);
+    conf.setOutputKeyClass(Text.class);
 
-		//FileInputFormat.setInputPaths(conf,new);
-		//FileInputFormat.addInputPath(conf, new Path(InputFiles));
-		FileInputFormat.setInputPaths(conf, inputDir);
-		FileOutputFormat.setOutputPath(conf,new Path(outputDir));
-		try {
-			JobClient.runJob(conf);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+    conf.setMapperClass(DPMap.class);
+    conf.setReducerClass(DPReduce.class);
 
-		System.out.println("Done Partitioning");
-		PartitionsInfo.assertPartitioning(outputDir);
-	}
+    conf.setNumMapTasks(32);
+    conf.setNumReduceTasks(32);
 
-	public static ArrayList<Partition> getGridPartitions(int k) {
-		ArrayList<Partition> partitions = new ArrayList<Partition>();
+    conf.setInputFormat(TextInputFormat.class);
+    // conf.setOutputFormat(TextOutputFormat.class);
+    conf.setOutputFormat(DPMultipleOutput.class);
 
-		int numRows = (int)Math.sqrt(k);
-		int numColumns = numRows;
+    conf.set("numRows", Integer.toString(Constants.gridHeight));
+    conf.set("numColumns", Integer.toString(Constants.gridWidth));
+    conf.set("minLat", Integer.toString(Constants.minLat));
+    conf.set("minLong", Integer.toString(Constants.minLong));
+    conf.set("maxLat", Integer.toString(Constants.maxLat));
+    conf.set("maxLong", Integer.toString(Constants.maxLong));
 
-		int cellWidth = Constants.gridWidth / numColumns;
-		int cellHeight = Constants.gridHeight / numRows;
+    conf.set("partitions", partitions);
 
-		for (int i = 0; ; i++) {
-			int bottom = i * cellHeight;
-			if (bottom >= Constants.gridHeight)
-				break;
-			int top = bottom + cellHeight;
-			if (top > Constants.gridHeight)
-				top = Constants.gridHeight;
+    // FileInputFormat.setInputPaths(conf,new);
+    // FileInputFormat.addInputPath(conf, new Path(InputFiles));
+    FileInputFormat.setInputPaths(conf, inputDir);
+    FileOutputFormat.setOutputPath(conf, new Path(outputDir));
+    try {
+      JobClient.runJob(conf);
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
 
-			for (int j = 0; ; j++) {
+    System.out.println("Done Partitioning");
+    PartitionsInfo.assertPartitioning(outputDir);
+  }
 
-				int left = j * cellWidth;
-				if (left >= Constants.gridWidth)
-					break;
-				int right = left + cellWidth;
-				if (right > Constants.gridWidth)
-					right = Constants.gridWidth;
+  public static ArrayList<Partition> getGridPartitions(int k) {
+    ArrayList<Partition> partitions = new ArrayList<Partition>();
 
-				Partition p = new Partition(bottom, top, left, right);
-				partitions.add(p);				
-			}
-		}
+    int numRows = (int) Math.sqrt(k);
+    int numColumns = numRows;
 
-		return partitions;
-	}
+    int cellWidth = Constants.gridWidth / numColumns;
+    int cellHeight = Constants.gridHeight / numRows;
+
+    for (int i = 0;; i++) {
+      int bottom = i * cellHeight;
+      if (bottom >= Constants.gridHeight)
+        break;
+      int top = bottom + cellHeight;
+      if (top > Constants.gridHeight)
+        top = Constants.gridHeight;
+
+      for (int j = 0;; j++) {
+
+        int left = j * cellWidth;
+        if (left >= Constants.gridWidth)
+          break;
+        int right = left + cellWidth;
+        if (right > Constants.gridWidth)
+          right = Constants.gridWidth;
+
+        Partition p = new Partition(bottom, top, left, right);
+        partitions.add(p);
+      }
+    }
+
+    return partitions;
+  }
 
 }
