@@ -27,16 +27,21 @@ public class DPMap extends MapReduceBase implements
 
   public void map(LongWritable key, Text value,
       OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
-    Partition partition = partitionsInfo.getPartitionID(value.toString(),
-        new OSMGPSParser());
-//    Partition partition = partitionsInfo.getPartitionID(value.toString(),
-//        new TweetDSParser());
+    // Partition partition = partitionsInfo.getPartitionID(value.toString(),
+    // new OSMGPSParser());
+    TweetDSParser parser = new TweetDSParser();
+    String[] tokens = parser.getCoordinates(value.toString());
 
-    Text word = new Text();
-    word.set(partition.getBottom() + "," + partition.getTop() + ","
-        + partition.getLeft() + "," + partition.getRight());
-    // System.out.println(word);
-    output.collect(word, value);
+    if (tokens != null) {
+      Partition partition = partitionsInfo.getPartitionID(tokens);
+
+      Text word = new Text();
+      word.set(partition.getBottom() + "," + partition.getTop() + ","
+          + partition.getLeft() + "," + partition.getRight());
+      // System.out.println(word);
+      output.collect(word, value);
+
+    }
   }
 
 }
