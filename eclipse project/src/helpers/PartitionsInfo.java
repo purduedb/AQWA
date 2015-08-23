@@ -15,9 +15,6 @@ import index.RTree;
 import com.turn.platform.cheetah.partitioning.horizontal.Partition;
 
 public class PartitionsInfo {
-	public double minLat;
-	public double minLong;
-
 	public double cellHeight;
 	public double cellWidth;
 
@@ -29,13 +26,9 @@ public class PartitionsInfo {
 	public PartitionsInfo(JobConf job) {
 		numRows = Integer.parseInt(job.get("numRows"));
 		numColumns = Integer.parseInt(job.get("numColumns"));
-		minLat = Integer.parseInt(job.get("minLat"));
-		minLong = Integer.parseInt(job.get("minLong"));
-		double maxLat = Integer.parseInt(job.get("maxLat"));
-		double maxLong = Integer.parseInt(job.get("maxLong"));
 
-		this.cellHeight = (maxLat - minLat)/numRows;
-		this.cellWidth = (maxLong - minLong)/numColumns;
+		this.cellHeight = (Constants.maxLat - Constants.minLat)/numRows;
+		this.cellWidth = (Constants.maxLong - Constants.minLong)/numColumns;
 
 		this.partitionsRTree = new RTree<Partition>(10, 2, 2);
 		String partitionsStr = job.get("partitions");
@@ -49,44 +42,47 @@ public class PartitionsInfo {
 	}
 
 	private int getRowID(String latitude) {
-		int rowID = (int)((Integer.parseInt(latitude) - minLat) / cellHeight);
-		if (rowID >= numRows)
-			rowID = numRows - 1;
+		int rowID = (int)((Double.parseDouble(latitude) - Constants.minLat) / cellHeight);
+		if (rowID >= numRows || rowID < 0)
+			return -1;
 
 		return rowID;
 	}
 
 	private int getColumnID(String longitude) {
-		int columnID = (int)((Integer.parseInt(longitude) - minLong) / cellWidth);
-		if (columnID >= numColumns)
-			columnID = numColumns - 1;
+		int columnID = (int)((Double.parseDouble(longitude) - Constants.minLong) / cellWidth);
+		if (columnID >= numColumns || columnID < 0)
+			return -1;
 
 		return columnID;
 	}
 
 	public Partition getPartitionID(String value) {
 		String [] tokens=value.toString().split(",");
+		
+			int rowID = getRowID(tokens[2]);
+			int columnID = getColumnID(tokens[3]);
+			
+			if (rowID == -1 || columnID == -1)
+				return null;
 
-		int rowID = getRowID(tokens[0]);
-		int columnID = getColumnID(tokens[1]);
+			double[] coords = new double[2];
+			coords[0] = columnID; coords[1] = rowID;
+			double[] dimensions = new double[2];
+			dimensions[0] = 0; dimensions[1] = 0;
+			List<Partition> partitions = partitionsRTree.searchExclusive(coords, dimensions);
 
-		double[] coords = new double[2];
-		coords[0] = columnID; coords[1] = rowID;
-		double[] dimensions = new double[2];
-		dimensions[0] = 0; dimensions[1] = 0;
-		List<Partition> partitions = partitionsRTree.searchExclusive(coords, dimensions);
+			if (partitions.size() > 1) { // Should not happen
+				System.out.println(partitions.size());
+				System.out.println(partitions.get(0).getBottom() + "," + partitions.get(0).getTop() + "," 
+						+ partitions.get(0).getLeft() + "," + partitions.get(0).getRight());
+				System.out.println(partitions.get(1).getBottom() + "," + partitions.get(1).getTop() + "," 
+						+ partitions.get(1).getLeft() + "," + partitions.get(1).getRight());
+				System.out.println(rowID + "," + columnID);
+				System.out.println(value);
+			}
 
-		if (partitions.size() > 1) {
-			System.out.println(partitions.size());
-			System.out.println(partitions.get(0).getBottom() + "," + partitions.get(0).getTop() + "," 
-					+ partitions.get(0).getLeft() + "," + partitions.get(0).getRight());
-			System.out.println(partitions.get(1).getBottom() + "," + partitions.get(1).getTop() + "," 
-					+ partitions.get(1).getLeft() + "," + partitions.get(1).getRight());
-			System.out.println(rowID + "," + columnID);
-			System.out.println(value);
-		}
-
-		return partitions.get(0);
+			return partitions.get(0);				
 	}
 
 	public static void assertPartitioning (String dataPath) {
@@ -103,11 +99,11 @@ public class PartitionsInfo {
 			for (FileStatus f : files) {
 				System.out.println(f.getPath().toString());
 
-//				if (f.getPath().toString().contains("_"))
-//					continue;
+				//				if (f.getPath().toString().contains("_"))
+				//					continue;
 				if (f.getPath().toString().charAt(0) == '_')
 					continue;
-				
+
 				BufferedReader br=new BufferedReader(new InputStreamReader(fs.open(f.getPath())));
 				//System.out.println("Opening file");
 

@@ -22,7 +22,7 @@ public class Solution {
 	public String toString() {
 		String str = "";
 		for (Partition p : partitions) {
-			str += ";" +  p.getBottom() + "," + p.getTop() + "," + p.getLeft() + "," + p.getRight();
+			str += ";" +  p.getBottom() + "," + p.getTop() + "," + p.getLeft() + "," + p.getRight();			
 		}
 		return str.substring(1); // to remove the first ;
 	}

@@ -30,6 +30,8 @@ public class Partition{
 
 	private double cost;
 	private double sizeInBytes;
+	
+	public int RegionID;
 
 	/**
 	 * Creates a new partition.

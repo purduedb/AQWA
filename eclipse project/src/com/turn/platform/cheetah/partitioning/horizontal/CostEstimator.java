@@ -37,13 +37,20 @@ public class CostEstimator {
 
 		if (users == null) {
 			grid = new Grid(gridWidth + 1, gridHeight + 1);
-			grid.readFromFiles();
 		}
 		if (qLoad != null) {
 			for (Partition p : qLoad)
 				grid.insertRegion(p.getBottom(), p.getTop(), p.getLeft(), p.getRight());
 			grid.preAggregateRegions();
 		}
+	}
+	
+	public void updateCountsInGrid(String countsPath) {
+		grid.updatePointCounts(countsPath);
+	}
+	
+	public void resetQCounts() {
+		grid.resetQCounts();
 	}
 
 	/**
@@ -53,9 +60,13 @@ public class CostEstimator {
 	 * @param partition Input partition.
 	 * @return Number of overlapping queries.
 	 */
-	public int getNumOverlappingQueries(Partition partition) {
-
+	public double getNumOverlappingQueries(Partition partition) {
+		//System.out.println(grid.getNumRegions(partition.getBottom(), partition.getTop(), partition.getLeft(), partition.getRight()));
 		return grid.getNumRegions(partition.getBottom(), partition.getTop(), partition.getLeft(), partition.getRight());
+	}
+	
+	public void archive() {
+		grid.archive();
 	}
 
 	/**

@@ -36,31 +36,22 @@ import org.apache.log4j.Logger;
 public class Grid {
 
 	public class neighborInfo {
-		int notInBottom;
-		int notInLeft;
-		int neitherInSouthNorLeft;
-		int allOverlapping;
+		long notInBottom; long archivedNotInBottom;
+		long notInLeft; long archivedNotInLeft;
+		long neitherInSouthNorLeft; long archivedNeitherInSouthNorLeft;
+		long allOverlapping; long archivedAllOverlapping;
 	}
 
 	// CHANGE TO PRIVATE
-	public double[][] pointData;
+	public long[][] pointData;
 	public neighborInfo[][] regionData;
 
-	HashMap<Integer, Integer> hMapping;
-	HashMap<Integer, Integer> vMapping;
-	HashMap<Integer, Integer> inverseHMapping;
-	HashMap<Integer, Integer> inverseVMapping;
 
 	private int numRows, numColumns;
 
 	public Grid(int numRows, int numColumns) {
 
-		hMapping = new HashMap<Integer, Integer>();
-		vMapping = new HashMap<Integer, Integer>();
-		inverseHMapping = new HashMap<Integer, Integer>();
-		inverseVMapping = new HashMap<Integer, Integer>();
-
-		this.pointData = new double[numRows][numColumns];
+		this.pointData = new long[numRows][numColumns];
 		this.regionData = new neighborInfo[numRows][numColumns];
 		for (int row = 0; row < numRows; row++)
 			for (int column = 0; column < numColumns; column++)
@@ -92,12 +83,12 @@ public class Grid {
 
 	public void insertNewRegion(int bottom, int top, int left, int right) {
 		//insertRegion(bottom, top, left, right);
-		
-//		for (int row = bottom; row < top; row++) {
-//			for (int column = left; column < right; column++) {
-//				regionData[row][column].allOverlapping++;					
-//			}
-//		}
+
+		for (int row = bottom; row < top; row++) {
+			for (int column = left; column < right; column++) {
+				regionData[row][column].allOverlapping++;					
+			}
+		}
 
 		// Column-wise for notInBottom
 		for (int row = bottom; row < numRows; row++) {
@@ -128,16 +119,16 @@ public class Grid {
 		}
 	}
 
-	public void preAggregatePoints() {
+	public void preAggregatePoints(long[][] counts) {
 		for (int row = 0; row < numRows; row++) {
 			for (int column = 1; column < numColumns; column++) {
-				this.pointData[row][column] += this.pointData[row][column - 1]; 
+				counts[row][column] += counts[row][column - 1]; 
 			}
 		}
 
 		for (int row = 1; row < numRows; row++) {
 			for (int column = 0; column < numColumns; column++) {
-				this.pointData[row][column] += this.pointData[row - 1][column]; 
+				counts[row][column] += counts[row - 1][column]; 
 			}
 		}
 	}
@@ -170,23 +161,70 @@ public class Grid {
 		}
 	}
 
-	public int getNumRegions(int bottom, int top, int left, int right) {
+	// OLD no archiving
+	//	public int getNumRegions(int bottom, int top, int left, int right) {
+	//
+	//		int sum = this.regionData[bottom][left].allOverlapping;
+	//
+	//		if ((top -  bottom) > 1)
+	//			sum += (this.regionData[top - 1][left].notInBottom - this.regionData[bottom][left].notInBottom);
+	//
+	//		if ((right -  left) > 1)
+	//			sum += (this.regionData[bottom][right -1].notInLeft - this.regionData[bottom][left].notInLeft);
+	//
+	//		if ((right -  left) > 1 && (top -  bottom) > 1) {
+	//			sum += (this.regionData[top - 1][right - 1].neitherInSouthNorLeft + this.regionData[bottom][left].neitherInSouthNorLeft);
+	//			sum -= this.regionData[bottom][right - 1].neitherInSouthNorLeft;
+	//			sum -= this.regionData[top - 1][left].neitherInSouthNorLeft;
+	//		}
+	//
+	//		return sum;
+	//	}
 
-		int sum = this.regionData[bottom][left].allOverlapping;
+	// with archiving
+	public double getNumRegions(int bottom, int top, int left, int right) {
 
-		if ((top -  bottom) > 1)
-			sum += (this.regionData[top - 1][left].notInBottom - this.regionData[bottom][left].notInBottom);
+		double sum = this.regionData[bottom][left].allOverlapping;
+		sum += this.regionData[bottom][left].archivedAllOverlapping;
 
-		if ((right -  left) > 1)
-			sum += (this.regionData[bottom][right -1].notInLeft - this.regionData[bottom][left].notInLeft);
+		if ((top -  bottom) > 1) {
+			sum += (this.regionData[top][left].notInBottom - this.regionData[bottom][left].notInBottom);
+			sum += (this.regionData[top][left].archivedNotInBottom - this.regionData[bottom][left].archivedNotInBottom);
+		}
+
+		if ((right -  left) > 1) {
+			sum += (this.regionData[bottom][right].notInLeft - this.regionData[bottom][left].notInLeft);
+			sum += (this.regionData[bottom][right].archivedNotInLeft - this.regionData[bottom][left].archivedNotInLeft);
+		}
 
 		if ((right -  left) > 1 && (top -  bottom) > 1) {
-			sum += (this.regionData[top - 1][right - 1].neitherInSouthNorLeft + this.regionData[bottom][left].neitherInSouthNorLeft);
-			sum -= this.regionData[bottom][right - 1].neitherInSouthNorLeft;
-			sum -= this.regionData[top - 1][left].neitherInSouthNorLeft;
+			sum += (this.regionData[top][right].neitherInSouthNorLeft + this.regionData[bottom][left].neitherInSouthNorLeft);
+			sum += (this.regionData[top][right].archivedNeitherInSouthNorLeft + this.regionData[bottom][left].archivedNeitherInSouthNorLeft);
+			sum -= this.regionData[bottom][right].neitherInSouthNorLeft;
+			sum -= this.regionData[bottom][right].archivedNeitherInSouthNorLeft;
+			sum -= this.regionData[top][left].neitherInSouthNorLeft;
+			sum -= this.regionData[top][left].archivedNeitherInSouthNorLeft;
 		}
 
 		return sum;
+	}
+
+	public void archive() {
+
+		for (int i = 0; i < numRows; i++) {
+			for (int j = 0; j < numColumns; j++) {
+				this.regionData[i][j].archivedAllOverlapping /= 10; this.regionData[i][j].archivedAllOverlapping += regionData[i][j].allOverlapping; regionData[i][j].allOverlapping = 0;
+				this.regionData[i][j].archivedNeitherInSouthNorLeft /= 10; this.regionData[i][j].archivedNeitherInSouthNorLeft += regionData[i][j].neitherInSouthNorLeft; regionData[i][j].neitherInSouthNorLeft = 0;
+				this.regionData[i][j].archivedNotInBottom /= 10; this.regionData[i][j].archivedNotInBottom += regionData[i][j].notInBottom; regionData[i][j].notInBottom = 0;
+				this.regionData[i][j].archivedNotInLeft /= 10; this.regionData[i][j].archivedNotInLeft += regionData[i][j].notInLeft; regionData[i][j].notInLeft = 0;
+			}
+		}
+	}
+
+	public void resetQCounts() {
+		for (int row = 0; row < numRows; row++)
+			for (int column = 0; column < numColumns; column++)
+				this.regionData[row][column] = new neighborInfo();
 	}
 
 	public double getNumPoints (int bottom, int top, int left, int right) {
@@ -205,47 +243,49 @@ public class Grid {
 		return sum;
 	}
 
-	private String dataPath = "counts/";
-
-	public void readFromFiles() {
+	public void updatePointCounts(String countsPath) {
+		long[][] temp = new long[numRows][numColumns];
 		System.out.println("Reading counts from files");
-		double total = 0;
+		long total = 0;
 		try {
 			Configuration conf = new Configuration();
 			FileSystem fs = FileSystem.get(conf);
 
-			Path path=new Path(dataPath);
+			Path path=new Path(countsPath);
 			FileStatus[] files = fs.listStatus(path);
 
 			for (FileStatus f : files) {
-				//System.out.println(f.getPath().toString());
-
 				if (f.getPath().toString().contains("_"))
 					continue;
 
 				BufferedReader br=new BufferedReader(new InputStreamReader(fs.open(f.getPath())));
-				//System.out.println("Opening file");
 
-				String line;
-				line = br.readLine();
-
+				String line = br.readLine();
 				while (line != null) {
 					String[] parts = line.split("\\s+");					
 					String[] coords = parts[0].split(",");
 					int rowID = Integer.parseInt(coords[0]);
 					int columnID = Integer.parseInt(coords[1]);
 
-					pointData[rowID][columnID] = Double.parseDouble(parts[1]);
-					total += pointData[rowID][columnID]; 
+					temp[rowID][columnID] = Integer.parseInt(parts[1]);
+					total += temp[rowID][columnID]; 
 					line=br.readLine();					
 				}
 				br.close();
 			}
 		} catch(Exception exc) {
-			System.out.println(exc.toString());
+			System.out.println(exc.getMessage());
 		}
-		System.out.println("Done reading counts from files");
-		preAggregatePoints();		
+		System.out.println("Done reading counts from files... Total is " + total);
+		preAggregatePoints(temp);
+
+		// Reflect counts in Point Data
+		for (int row = 0; row < numRows; row++) {
+			for (int column = 0; column < numColumns; column++) {
+				this.pointData[row][column] += temp[row][column]; 
+			}
+		}
+		System.out.println("Done updating Counts in grid... Total so far is " + this.pointData[numRows - 1][numColumns - 1]);
 	}
 
 	public int getWidth() {

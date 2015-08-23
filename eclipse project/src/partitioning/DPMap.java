@@ -14,8 +14,6 @@ import org.apache.hadoop.mapred.Reporter;
 
 import com.turn.platform.cheetah.partitioning.horizontal.Partition;
 
-
-
 public class DPMap extends MapReduceBase implements Mapper<LongWritable, Text, Text, Text> {
 
 	PartitionsInfo partitionsInfo;
@@ -24,12 +22,16 @@ public class DPMap extends MapReduceBase implements Mapper<LongWritable, Text, T
 	}
 
 	public void map(LongWritable key, Text value,OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
-		Partition partition = partitionsInfo.getPartitionID(value.toString());
+		try {
+			Partition partition = partitionsInfo.getPartitionID(value.toString());
+			if (partition == null)
+				return;
 
-		Text word = new Text();
-		word.set(partition.getBottom() + "," +partition.getTop() + "," + partition.getLeft() + "," + partition.getRight());
-		//System.out.println(word);
-		output.collect(word, value);
+			Text word = new Text();
+			word.set(partition.getBottom() + "," +partition.getTop() + "," + partition.getLeft() + "," + partition.getRight());
+			output.collect(word, value);
+		} catch (Exception e) {
+			
+		}
 	}
-
 }
