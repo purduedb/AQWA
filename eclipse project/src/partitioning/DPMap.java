@@ -12,7 +12,7 @@ import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 
-import com.turn.platform.cheetah.partitioning.horizontal.Partition;
+import core.Partition;
 
 public class DPMap extends MapReduceBase implements Mapper<LongWritable, Text, Text, Text> {
 

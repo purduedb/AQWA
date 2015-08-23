@@ -24,11 +24,11 @@ import helpers.Constants;
 
 import java.util.List;
 
-import com.turn.platform.cheetah.partitioning.horizontal.CostEstimator;
-import com.turn.platform.cheetah.partitioning.horizontal.DynamicPartitioning;
-import com.turn.platform.cheetah.partitioning.horizontal.GreedyGR;
-import com.turn.platform.cheetah.partitioning.horizontal.Partition;
-import com.turn.platform.cheetah.partitioning.horizontal.Solution;
+import core.CostEstimator;
+import core.DynamicPartitioning;
+import core.GreedyGR;
+import core.Partition;
+import core.Solution;
 
 public class PartitioningDriver {
 

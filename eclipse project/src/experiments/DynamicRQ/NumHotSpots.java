@@ -21,10 +21,10 @@ import partitioning.Common;
 import helpers.Constants;
 import helpers.SplitMergeInfo;
 
-import com.turn.platform.cheetah.partitioning.horizontal.CostEstimator;
-import com.turn.platform.cheetah.partitioning.horizontal.DynamicPartitioning;
-import com.turn.platform.cheetah.partitioning.horizontal.Partition;
-import com.turn.platform.cheetah.partitioning.horizontal.Solution;
+import core.CostEstimator;
+import core.DynamicPartitioning;
+import core.Partition;
+import core.Solution;
 
 import experiments.QWload;
 import experiments.Stats;

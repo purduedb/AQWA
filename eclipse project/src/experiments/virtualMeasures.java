@@ -5,14 +5,11 @@ import helpers.SplitMergeInfo;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
-
-
-
-import com.turn.platform.cheetah.partitioning.horizontal.CostEstimator;
-import com.turn.platform.cheetah.partitioning.horizontal.DynamicPartitioning;
-import com.turn.platform.cheetah.partitioning.horizontal.Partition;
-import com.turn.platform.cheetah.partitioning.horizontal.Solution;
-import com.turn.platform.cheetah.partitioning.horizontal.StaticPartitioning;
+import core.CostEstimator;
+import core.DynamicPartitioning;
+import core.Partition;
+import core.Solution;
+import core.StaticPartitioning;
 
 import drawing.Line;
 

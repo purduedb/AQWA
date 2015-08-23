@@ -17,7 +17,7 @@ import org.apache.hadoop.fs.*;
 
 import partitioning.Common;
 
-import com.turn.platform.cheetah.partitioning.horizontal.Solution;
+import core.Solution;
 
 
 public class CountInGrid{

@@ -5,7 +5,7 @@ import helpers.FocalPoint;
 
 import java.util.ArrayList;
 
-import com.turn.platform.cheetah.partitioning.horizontal.Partition;
+import core.Partition;
 
 public class QWload {
 	public int focalX;

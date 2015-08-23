@@ -14,6 +14,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
 
+// Used to split a large file into multiple small files.
+
 public class SplitData {
 
 	// args[0] = input path

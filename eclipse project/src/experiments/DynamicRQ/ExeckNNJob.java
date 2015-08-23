@@ -16,7 +16,7 @@ import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RunningJob;
 
-import com.turn.platform.cheetah.partitioning.horizontal.Partition;
+import core.Partition;
 
 import experiments.Stats;
 

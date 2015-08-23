@@ -12,7 +12,7 @@ import org.apache.hadoop.mapred.JobConf;
 
 import index.RTree;
 
-import com.turn.platform.cheetah.partitioning.horizontal.Partition;
+import core.Partition;
 
 public class PartitionsInfo {
 	public double cellHeight;

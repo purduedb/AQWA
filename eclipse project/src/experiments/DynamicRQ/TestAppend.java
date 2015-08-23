@@ -12,9 +12,9 @@ import org.apache.hadoop.mapred.JobConf;
 import partitioning.Common;
 import helpers.Constants;
 
-import com.turn.platform.cheetah.partitioning.horizontal.CostEstimator;
-import com.turn.platform.cheetah.partitioning.horizontal.DynamicPartitioning;
-import com.turn.platform.cheetah.partitioning.horizontal.Solution;
+import core.CostEstimator;
+import core.DynamicPartitioning;
+import core.Solution;
 
 public class TestAppend {
 	

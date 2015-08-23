@@ -11,7 +11,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
 
-import com.turn.platform.cheetah.partitioning.horizontal.Partition;
+import core.Partition;
 
 
 public class SplitMergeInfo {

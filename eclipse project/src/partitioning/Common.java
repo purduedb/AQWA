@@ -22,10 +22,10 @@ import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.TextInputFormat;
 
-import com.turn.platform.cheetah.partitioning.horizontal.CostEstimator;
-import com.turn.platform.cheetah.partitioning.horizontal.DynamicPartitioning;
-import com.turn.platform.cheetah.partitioning.horizontal.Partition;
-import com.turn.platform.cheetah.partitioning.horizontal.Solution;
+import core.CostEstimator;
+import core.DynamicPartitioning;
+import core.Partition;
+import core.Solution;
 
 public class Common {
 

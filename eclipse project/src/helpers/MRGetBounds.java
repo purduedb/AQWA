@@ -33,7 +33,7 @@ import org.apache.hadoop.mapred.TaskReport;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapreduce.Mapper.Context;
 
-import com.turn.platform.cheetah.partitioning.horizontal.Partition;
+import core.Partition;
 
 
 public class MRGetBounds {
